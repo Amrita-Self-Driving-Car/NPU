@@ -1,0 +1,41 @@
+def decimalToBinary(num, k_prec) :
+    binary = ""
+    Integral = int(num)
+    fractional = num - Integral
+    while (Integral) :
+        rem = Integral % 2
+        binary += str(rem);
+        Integral //= 2
+    binary = binary[ : : -1]
+
+    binary = "0" + "0"*(4-len(binary)) + binary
+    while (k_prec) :
+        fractional *= 2
+        fract_bit = int(fractional)
+        if (fract_bit == 1) :
+            fractional -= fract_bit
+            binary += '1'
+        else :
+            binary += '0'
+        k_prec -= 1
+    return binary
+
+def XValues():
+    f = open("XValues.mif", "w")
+    x = -15.96875
+    largest_x = -x
+    while(x <= largest_x):
+        print(x)
+        if(x < 0):
+            k = decimalToBinary(-x, 11)
+            k  = ''.join(['1' if i == '0' else '0' for i in k])
+            temp = int(k,2)
+            val = bin(temp + 1)[2:]
+        else:
+            val = decimalToBinary(x, 11)
+        f.write(str(val)+"\n")
+        x = x + (0.03125)
+    f.close()
+
+
+XValues()
