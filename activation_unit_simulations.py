@@ -1,69 +1,59 @@
 import math
 import numpy as np
 
-def bin_to_dec(binStr):
-  i = -1
-  sum = 0
-  for digit in binStr:
-    sum += int(digit)*pow(2,i)
-    i=i-1
-  return sum
-
-''' Sigmoid '''
-
-def sigmoid(x):
-    try:
-        return 1 / (1+math.exp(-x)) #for x less than -1023 will give value error
-    except:
-        return 0
-
-''' TanH '''
-
 def tanh(x):
     try:
         return np.tanh(x)
     except:
         return 0
 
-''' Softmax '''
+def sigmoid(x):
+    try:
+        return 1 / ( 1 +math.exp(-x))  # for x less than -1023 will give value error
+    except:
+        return 0
 
-def softmax1(x,sum_exp):
-    return round(x /sum_exp, 5)
-
-def DtoB(num,dataWidth,fracBits):#funtion for converting into two's complement format
-    if num >= 0:
-        num = num * (2**fracBits)
-        num = int(num)
-        e = bin(num)[2:]
-        if (len(e) < 15):
-          e = (16-len(e))*"0" + e
+def decimalToBinary(num, k_prec) :
+    binary = ""
+    Integral = int(num)
+    fractional = num - Integral
+    if Integral > 0:
+        binary = "1"
     else:
-        num = -num
-        num = num * (2**fracBits)#number of fractional bits
-        num = int(num)
-        if num == 0:
-            d = 0
-        else:
-            d = 2**dataWidth - num
-        e = bin(d)[2:]
-    return e
+        binary = "0"
+    binary = "0" + binary
 
-def ActiFuncSigTanH(dataWidth,Size,weightIntSize,inputIntSize):
-    f = open("SigTanHContent.mif", "w")
-    fractBits = Size - (weightIntSize + inputIntSize)
-    if fractBits < 0:  # Sigmoid size is smaller the integer part of the MAC operation
-        fractBits = 0
-    x = -2 ** (weightIntSize + inputIntSize - 1)  # Smallest input going to the Sigmoid LUT from the neuron
-    x_axis = []
-    for i in range(0, 2 ** Size):
+    while (k_prec) :
+        fractional *= 2
+        fract_bit = int(fractional)
+        if (fract_bit == 1) :
+            fractional -= fract_bit
+            binary += '1'
+        else :
+            binary += '0'
+        k_prec -= 1
+    return binary
+
+def XValues():
+    f = open("activation_sig_tanh.mif", "w")
+    x = -15.96875
+    largest_x = -x
+    while(x <= largest_x):
+        print(x)
         tan_func = tanh(x)
         sig_func = sigmoid(x)
-        tan = DtoB(tan_func, dataWidth, dataWidth - inputIntSize)
-        sig = DtoB(sig_func, dataWidth, dataWidth - inputIntSize)
-        x_axis.append(x)
-        #print(sig_func," ",tan_func)
-        f.write(sig+tan + '\n')
-        x = x + (2 ** -fractBits)
+        print(sig_func,tan_func)
+        if(tan_func < 0):
+            tan = decimalToBinary(-tan_func, 14)
+            tan = ''.join(['1' if i == '0' else '0' for i in tan])
+            temp_tan = int(tan, 2)
+            val_tan = bin(temp_tan + 1)[2:]
+        else:
+            val_tan = decimalToBinary(tan_func, 14)
+        val_sig = decimalToBinary(sig_func, 14)
+        f.write(str(val_sig) + str(val_tan) +"\n")
+        print(str(val_sig) +" "+ str(val_tan)+"\n")
+        x = x + (0.03125)
     f.close()
 
-ActiFuncSigTanH(dataWidth=16,Size=10,weightIntSize=4,inputIntSize=1)
+XValues()
