@@ -48,18 +48,23 @@ module Activation_Tag_check #(
     reg[15:0] DIFF_CHECK = 16'b0000000000100000;
     
     // Memory Settings
-    reg [DATAWIDTH-1:0] tag_rom [2**INWIDTH-1:0];
-    reg [2*(DATAWIDTH)-1:0] activation_rom [2**INWIDTH-1:0];
+//    reg [DATAWIDTH-1:0] tag_rom [2**INWIDTH-1:0];
+//    reg [2*(DATAWIDTH)-1:0] activation_rom [2**INWIDTH-1:0];
     
     // Initializing Memory
-    initial
-        begin
-            $readmemb("XValues.mif", tag_rom);
-            $readmemb("SigTanHContent.mif",activation_rom);
-        end
+//    initial
+//        begin
+//            $readmemb("XValues.mif", tag_rom);
+//            $readmemb("SigTanHContent.mif",activation_rom);
+//        end
 
     // Loading Memory
-        
+    reg load_mem_X = 1'b1;
+    reg load_mem_activation = 1'b1;
+    
+    X_Rom tag_rom(.load_mem(load_mem_X));
+    Activation_Rom activation_rom(.load_mem(load_mem_activation));
+    
     // Clock Settings
     reg clock_enable = 1'b1;
     reg reset = 1'b0;
@@ -104,7 +109,7 @@ module Activation_Tag_check #(
     begin
         // Now need to implement binary search.
 //        #10 end_index <= mid_index - 1;
-        mem_value = tag_rom[mid_index];
+        mem_value = tag_rom.mem[mid_index];
         difference_value = sum - mem_value;
         difference_value_flag = difference_value[DATAWIDTH-1];
         
@@ -119,7 +124,7 @@ module Activation_Tag_check #(
             begin
                 tag_value = mem_value;
 //                is_found = 1'b1;
-                sig_tan_activation_value = activation_rom[mid_index];
+                sig_tan_activation_value = activation_rom.mem[mid_index];
                 
                  // Sigmoid => 1'b0     TanH => 1'b0
                 if(activation_func == 1'b0)
@@ -127,6 +132,8 @@ module Activation_Tag_check #(
                 else
                     activation_value = sig_tan_activation_value[DATAWIDTH-1: 0];// lower 16 bits in activation_func 
                 end
+                
+//              $display("tag_value = %b, sig_tan_activation_value = %b, activation_value = %b", tag_value, sig_tan_activation_value, activation_value);
         end
         else
             begin 
