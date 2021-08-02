@@ -24,7 +24,6 @@
 module Activation_Tag_check #(
         parameter DATAWIDTH = 16,
         parameter INWIDTH = 10,
-        parameter DIFF_CHECK = 0.015625,
         parameter SF = 2.0**-11.0
     )(
         input clock,
@@ -40,9 +39,13 @@ module Activation_Tag_check #(
     //       conditionsl if blocks.
     //    3. Use If Blocks to write binary search algorithm.                     positive
     //    4. If sum - tag <=(less than equals to) 0.0015 stop loop and set       positive
-    //       output as the  corresponding index.
+    //       output as the corresponding tag.
+    //    5. Load the corresponding activation value into a register             positive
+    //    6. Based on the signal choose lower or higher 16 bits of the           positive
+    //       activation value.  
     
     parameter COUNTER_WIDTH = INWIDTH;
+    reg[15:0] DIFF_CHECK = 16'b0000000000100000;
     
     // Memory Settings
     reg [DATAWIDTH-1:0] tag_rom [2**INWIDTH-1:0];
@@ -54,6 +57,8 @@ module Activation_Tag_check #(
             $readmemb("XValues.mif", tag_rom);
             $readmemb("SigTanHContent.mif",activation_rom);
         end
+
+    // Loading Memory
         
     // Clock Settings
     reg clock_enable = 1'b1;
@@ -108,7 +113,7 @@ module Activation_Tag_check #(
             difference_value = (~difference_value) + 1;
         end
         
-        if(SF*difference_value <= DIFF_CHECK)
+        if(difference_value <= DIFF_CHECK)
         begin
             if(difference_value_flag >=0)
             begin
