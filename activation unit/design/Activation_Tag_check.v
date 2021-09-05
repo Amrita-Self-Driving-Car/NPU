@@ -23,16 +23,15 @@
 
 module Activation_Tag_check #(
         parameter DATAWIDTH = 16,
-        parameter INWIDTH = 10,
-        parameter SF = 2.0**-11.0
+        parameter INWIDTH = 9
     )(
         input clock,
         input [DATAWIDTH-1:0] sum,
-        input activation_func,
+        input [1:0] activation_func,
         output reg[DATAWIDTH-1:0] activation_value,
         output reg[DATAWIDTH-1:0] tag_value
     );
-    
+
     // Things to be done :                                                       status
     //    1. Need to create a for loop equivalent using counters.                positive
     //    2. use always to check if counter changes and in that create           positive
@@ -45,7 +44,7 @@ module Activation_Tag_check #(
     //       activation value.  
     
     parameter COUNTER_WIDTH = INWIDTH;
-    reg[15:0] DIFF_CHECK = 16'b0000000000100000;
+    reg[15:0] DIFF_CHECK = 16'b0000000001000000;
     
     // Memory Settings
 //    reg [DATAWIDTH-1:0] tag_rom [2**INWIDTH-1:0];
@@ -78,7 +77,7 @@ module Activation_Tag_check #(
             
             
     // Binary Search Algorithm 
-    parameter max_value_of_memory = 2**INWIDTH-1;
+    parameter max_value_of_memory = 510; // Actually It should be 2**INWIDTH-1
     reg [COUNTER_WIDTH-1:0] start_index = {COUNTER_WIDTH{1'b0}};
     reg [COUNTER_WIDTH-1:0] end_index = max_value_of_memory;
     reg [COUNTER_WIDTH-1:0] mid_index = max_value_of_memory/2;
@@ -100,6 +99,39 @@ module Activation_Tag_check #(
         difference_value_flag = 1'b0;
         mem_value = {(DATAWIDTH-1){1'b0}};
         activation_value = {(DATAWIDTH-1){1'bx}};
+        
+        
+//        // If Num is greater than or equal to +8 then,
+//        // we need to return activation value at 510 
+//        if(sum>tag_rom.mem[510])
+//        begin
+//            tag_value = tag_rom.mem[510];
+////          is_found = 1'b1;
+//            sig_tan_activation_value = activation_rom.mem[510];
+                
+//            // Sigmoid => 1'b0     TanH => 1'b0
+//            if(activation_func == 1'b0)
+//                activation_value = sig_tan_activation_value[2*(DATAWIDTH)-1: DATAWIDTH];// higher 16 bits in activation_mem
+//            else
+//                activation_value = sig_tan_activation_value[DATAWIDTH-1: 0];// lower 16 bits in activation_func 
+//        end
+//        // If Num is less than or equal to -8 then,
+//        // we need to return activation value at 0 
+//        else
+//        begin
+//            if(sum>tag_rom.mem[0])
+//            begin
+//                tag_value = tag_rom.mem[0];
+//    //          is_found = 1'b1;
+//                sig_tan_activation_value = activation_rom.mem[0];
+                    
+//                // Sigmoid => 1'b0     TanH => 1'b0
+//                if(activation_func == 1'b0)
+//                    activation_value = sig_tan_activation_value[2*(DATAWIDTH)-1: DATAWIDTH];// higher 16 bits in activation_mem
+//                else
+//                    activation_value = sig_tan_activation_value[DATAWIDTH-1: 0];// lower 16 bits in activation_func
+//            end
+//        end
     end
     
     always @(start_index or end_index)
@@ -109,7 +141,8 @@ module Activation_Tag_check #(
     begin
         // Now need to implement binary search.
 //        #10 end_index <= mid_index - 1;
-        mem_value = tag_rom.mem[mid_index];
+        mem_value = {tag_rom.mem[mid_index], 6'b000000} ;
+//        $display("mem[i] = %b", mem_value);
         difference_value = sum - mem_value;
         difference_value_flag = difference_value[DATAWIDTH-1];
         
@@ -140,7 +173,18 @@ module Activation_Tag_check #(
                 if(difference_value_flag == 0)
                     start_index <= mid_index + 1;
                 else
-                    end_index <= mid_index - 1;
+                begin
+                    if(difference_value_flag == 1)
+                    begin
+                        end_index <= mid_index - 1;
+                    end
+                    else
+                    begin
+                        start_index <= start_index;
+                        end_index <= end_index;
+                    end
+                end
+                    
             end
 //        $display("For Sum = %b, mem_value = %b, difference = %b, start_index = %d, end_index = %d, mid_index = %d, flag = %b", sum, mem_value, difference_value, start_index, end_index, mid_index, difference_value_flag);
     end

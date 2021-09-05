@@ -35,7 +35,7 @@ module Activation_TestBench;
     //        #30 $finish;
     //    end
 
-    parameter DataWidth = 16, InWidth = 10, diff_check = 0.015625;
+    parameter DataWidth = 16, InWidth = 9, diff_check = 0.015625;
     parameter SF = 2.0**-11.0;
     parameter SF2 = 2.0**-14.0;
 
@@ -48,7 +48,7 @@ module Activation_TestBench;
     reg[15:0] test_mem[19:0];
     integer i=0;
 
-    Activation_Tag_check #(.DATAWIDTH(DataWidth), .INWIDTH(InWidth), .DIFF_CHECK(diff_check), .SF(SF))
+    Activation_Tag_check #(.DATAWIDTH(DataWidth), .INWIDTH(InWidth))
     ATC(.clock(clock), .sum(sum), .activation_func(activation_func), .activation_value(activation_value), .tag_value(tag_value));
 
     always #2 clock <= !clock;
@@ -69,6 +69,7 @@ module Activation_TestBench;
     begin
         $readmemb("random_x_values_not_in_RAM.mif", test_mem);
         #0 sum = test_mem[0];
+//        $display($time, " sum = %b ", sum);
         //          for(i=0;i<11;i=i+1)
         //          begin
         //              #100 sum = test_mem[i];
